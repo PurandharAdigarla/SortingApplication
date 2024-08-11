@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorting Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        h1 {
+            background-color: #007BFF;
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #status {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        a {
+            font-size: 16px;
+            color: #007BFF;
+            text-decoration: none;
+            display: block;
+            margin: 10px 0;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        /* Loading spinner */
+        .loading {
+            display: none;
+            font-size: 18px;
+            color: #007BFF;
+            margin-top: 20px;
+        }
+        .loading span {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 4px solid #007BFF;
+            border-radius: 50%;
+            border-top: 4px solid transparent;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<h1>Sorting Application</h1>
+<div class="container">
+    <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
+
+    <div>
+        <label for="sortOrder">Select sorting order:</label>
+        <select id="sortOrder">
+            <option value="1">Ascending</option>
+            <option value="2">Descending</option>
+        </select>
+        <button onclick="sortNumbers()">Sort Numbers</button>
+    </div>
+
+    <p id="status"></p>
+
+    <div class="loading" id="loadingIndicator">
+        <span></span> Sorting in progress...
+    </div>
+
+    <a id="randomNumbersLink" href="#" style="display:none">Download Random Numbers CSV</a>
+    <a id="sortedNumbersLink" href="#" style="display:none">Download Sorted Numbers CSV</a>
+</div>
+
+<script>
+    async function generateRandomNumbers() {
+        try {
+            const response = await fetch('/api/generateRandomNumbers', { method: 'POST' });
+            const text = await response.text();
+            document.getElementById('status').innerText = text;
+        } catch (error) {
+            console.error('Error generating random numbers:', error);
+            document.getElementById('status').innerText = 'Error generating random numbers.';
+        }
+    }
+
+    async function sortNumbers() {
+        try {
+            document.getElementById('loadingIndicator').style.display = 'block';
+            const order = document.getElementById('sortOrder').value;
+            const response = await fetch(`/api/sortNumbers?order=${order}`, { method: 'POST' });
+            const result = await response.json();
+            document.getElementById('status').innerText = `Sorting complete. Time taken: ${result.timeTaken} milliseconds`;
+
+            // Update links to download files
+            document.getElementById('randomNumbersLink').href = '/downloads/randomNumbers.csv';
+            document.getElementById('sortedNumbersLink').href = '/downloads/sortedNumbers.csv';
+            document.getElementById('randomNumbersLink').style.display = 'inline';
+            document.getElementById('sortedNumbersLink').style.display = 'inline';
+        } catch (error) {
+            console.error('Error sorting numbers:', error);
+            document.getElementById('status').innerText = 'Error sorting numbers.';
+        } finally {
+            document.getElementById('loadingIndicator').style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>
