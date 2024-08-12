@@ -85,6 +85,8 @@
 <body>
 <h1>Sorting Application</h1>
 <div class="container">
+    <label for="numCount">Number of random numbers:</label>
+    <input type="number" id="numCount" min="1" placeholder="Enter number of random numbers">
     <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
 
     <div>
@@ -99,7 +101,7 @@
     <p id="status"></p>
 
     <div class="loading" id="loadingIndicator">
-        <span></span> Sorting in progress...
+        <span></span> Processing...
     </div>
 
     <a id="randomNumbersLink" href="#" style="display:none">Download Random Numbers CSV</a>
@@ -110,12 +112,20 @@
 <script>
     async function generateRandomNumbers() {
         try {
-            const response = await fetch('/api/generateRandomNumbers', { method: 'POST' });
+            const numCount = document.getElementById('numCount').value;
+            document.getElementById('loadingIndicator').style.display = 'block';
+            const response = await fetch(`/api/generateRandomNumbers?count=${numCount}`, { method: 'POST' });
             const text = await response.text();
             document.getElementById('status').innerText = text;
+
+            // Update the link for downloading random numbers
+            document.getElementById('randomNumbersLink').href = '/downloads/randomNumbers.csv';
+            document.getElementById('randomNumbersLink').style.display = 'inline';
         } catch (error) {
             console.error('Error generating random numbers:', error);
             document.getElementById('status').innerText = 'Error generating random numbers.';
+        } finally {
+            document.getElementById('loadingIndicator').style.display = 'none';
         }
     }
 
@@ -128,9 +138,8 @@
             document.getElementById('status').innerText = `Sorting complete. Time taken: ${result.timeTaken} milliseconds`;
 
             // Update links to download files
-            document.getElementById('randomNumbersLink').href = '/downloads/randomNumbers.csv';
-            document.getElementById('sortedNumbersLink').href = '/downloads/sortedNumbers.csv';
-            document.getElementById('randomNumbersLink').style.display = 'inline';
+            const sortedFileUrl = result.sortedNumbersUrl;
+            document.getElementById('sortedNumbersLink').href = sortedFileUrl;
             document.getElementById('sortedNumbersLink').style.display = 'inline';
         } catch (error) {
             console.error('Error sorting numbers:', error);
