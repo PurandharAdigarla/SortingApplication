@@ -7,147 +7,96 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-        h1 {
-            background-color: #007BFF;
-            color: white;
-            padding: 20px;
-            margin: 0;
+            margin: 20px;
         }
         .container {
-            max-width: 800px;
-            margin: 20px auto;
+            max-width: 600px;
+            margin: 0 auto;
             padding: 20px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
-        button {
+        .button {
+            display: inline-block;
             padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            background-color: #007BFF;
+            margin-top: 10px;
             border: none;
             border-radius: 5px;
+            color: #fff;
+            background-color: #007BFF;
+            text-align: center;
             cursor: pointer;
-            margin: 10px;
+            text-decoration: none;
         }
-        button:hover {
+        .button:hover {
             background-color: #0056b3;
         }
-        select {
+        .result {
+            margin-top: 20px;
             padding: 10px;
-            font-size: 16px;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        #status {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        a {
-            font-size: 16px;
-            color: #007BFF;
-            text-decoration: none;
-            display: block;
-            margin: 10px 0;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        /* Loading spinner */
-        .loading {
-            display: none;
-            font-size: 18px;
-            color: #007BFF;
-            margin-top: 20px;
-        }
-        .loading span {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            border: 4px solid #007BFF;
-            border-radius: 50%;
-            border-top: 4px solid transparent;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            background-color: #f9f9f9;
         }
     </style>
 </head>
 <body>
-<h1>Sorting Application</h1>
 <div class="container">
-    <label for="numCount">Number of random numbers:</label>
-    <input type="number" id="numCount" min="1" placeholder="Enter number of random numbers">
-    <button onclick="generateRandomNumbers()">Generate Random Numbers</button>
+    <h1>Sorting Application</h1>
 
-    <div>
-        <label for="sortOrder">Select sorting order:</label>
-        <select id="sortOrder">
-            <option value="1">Ascending</option>
-            <option value="2">Descending</option>
+    <form id="randomNumberForm">
+        <label for="count">Number of random numbers:</label>
+        <input type="number" id="count" name="count" min="1" required>
+        <button type="submit" class="button">Generate Random Numbers</button>
+    </form>
+
+    <form id="sortNumbersForm" style="margin-top: 20px;">
+        <label for="order">Select sorting order:</label>
+        <select id="order" name="order">
+            <option value="ascending">Ascending</option>
+            <option value="descending">Descending</option>
         </select>
-        <button onclick="sortNumbers()">Sort Numbers</button>
+        <button type="submit" class="button">Sort Numbers</button>
+    </form>
+
+    <div id="result" class="result"></div>
+
+    <div id="links" style="margin-top: 20px;">
+        <a id="downloadRandomNumbers" href="#" class="button" style="display: none;">Download Random Numbers</a>
+        <a id="downloadSortedNumbers" href="#" class="button" style="display: none;">Download Sorted Numbers</a>
     </div>
-
-    <p id="status"></p>
-
-    <div class="loading" id="loadingIndicator">
-        <span></span> Processing...
-    </div>
-
-    <a id="randomNumbersLink" href="#" style="display:none">Download Random Numbers CSV</a>
-    <br>
-    <a id="sortedNumbersLink" href="#" style="display:none">Download Sorted Numbers CSV</a>
 </div>
 
 <script>
-    async function generateRandomNumbers() {
-        try {
-            const numCount = document.getElementById('numCount').value;
-            document.getElementById('loadingIndicator').style.display = 'block';
-            const response = await fetch(`/api/generateRandomNumbers?count=${numCount}`, { method: 'POST' });
-            const text = await response.text();
-            document.getElementById('status').innerText = text;
+    document.getElementById('randomNumberForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let count = document.getElementById('count').value;
+        fetch('/api/generateRandomNumbers?count=' + count, {
+            method: 'POST'
+        }).then(response => response.text())
+          .then(data => {
+              document.getElementById('result').innerText = data;
+              document.getElementById('downloadRandomNumbers').style.display = 'inline';
+              document.getElementById('downloadRandomNumbers').href = '/downloads/randomNumbers.csv';
+          });
+    });
 
-            // Update the link for downloading random numbers
-            document.getElementById('randomNumbersLink').href = '/downloads/randomNumbers.csv';
-            document.getElementById('randomNumbersLink').style.display = 'inline';
-        } catch (error) {
-            console.error('Error generating random numbers:', error);
-            document.getElementById('status').innerText = 'Error generating random numbers.';
-        } finally {
-            document.getElementById('loadingIndicator').style.display = 'none';
-        }
-    }
+    document.getElementById('sortNumbersForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let order = document.getElementById('order').value;
+        fetch('/api/sortNumbers?order=' + order, {
+            method: 'POST'
+        }).then(response => response.json())
+          .then(data => {
+              document.getElementById('result').innerHTML =
+                  `Java Sorting Time: ${data.javaSortingTime} milliseconds<br>
+                   C Sorting Time: ${data.cSortingTime} milliseconds<br>
+                   Time Taken: ${data.timeTaken} milliseconds`;
 
-    async function sortNumbers() {
-        try {
-            document.getElementById('loadingIndicator').style.display = 'block';
-            const order = document.getElementById('sortOrder').value;
-            const response = await fetch(`/api/sortNumbers?order=${order}`, { method: 'POST' });
-            const result = await response.json();
-            document.getElementById('status').innerText = `Sorting complete. Time taken: ${result.timeTaken} milliseconds`;
-
-            // Update links to download files
-            const sortedFileUrl = result.sortedNumbersUrl;
-            document.getElementById('sortedNumbersLink').href = sortedFileUrl;
-            document.getElementById('sortedNumbersLink').style.display = 'inline';
-        } catch (error) {
-            console.error('Error sorting numbers:', error);
-            document.getElementById('status').innerText = 'Error sorting numbers.';
-        } finally {
-            document.getElementById('loadingIndicator').style.display = 'none';
-        }
-    }
+              document.getElementById('downloadSortedNumbers').style.display = 'inline';
+              document.getElementById('downloadSortedNumbers').href = '/downloads/' + (order === 'ascending' ? 'javaSortedAssent.csv' : 'javaSortedDescent.csv');
+          });
+    });
 </script>
 </body>
 </html>

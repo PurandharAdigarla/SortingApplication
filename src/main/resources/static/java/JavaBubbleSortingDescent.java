@@ -25,11 +25,8 @@ public class JavaBubbleSortingDescent extends SortTech {
                     .mapToLong(Long::parseLong)
                     .toArray();
 
-            long startTime = System.nanoTime();
+            // Perform sorting without timing
             sorter.bubbleSortDescending(numbers);
-            long endTime = System.nanoTime();
-
-            double elapsedTime = (endTime - startTime) / 1e6; // Time in milliseconds
 
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePathDescent));
             for (int i = 0; i < numbers.length; i++) {
@@ -43,7 +40,6 @@ public class JavaBubbleSortingDescent extends SortTech {
             writer.close();
 
             System.out.println("Sorted numbers saved to " + outputFilePathDescent);
-            System.out.printf("Sorting time: %.2f milliseconds%n", elapsedTime);
 
         } catch (IOException e) {
             e.printStackTrace();

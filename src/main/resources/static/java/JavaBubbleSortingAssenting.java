@@ -25,11 +25,8 @@ public class JavaBubbleSortingAssenting extends SortTech {
                     .mapToLong(Long::parseLong)
                     .toArray();
 
-            long startTime = System.nanoTime();
+            // Perform sorting without timing
             sorter.bubbleSortAccenting(numbers);
-            long endTime = System.nanoTime();
-
-            double elapsedTime = (endTime - startTime) / 1e6; // Time in milliseconds
 
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePathAccent));
             for (int i = 0; i < numbers.length; i++) {
@@ -43,7 +40,6 @@ public class JavaBubbleSortingAssenting extends SortTech {
             writer.close();
 
             System.out.println("Sorted numbers saved to " + outputFilePathAccent);
-            System.out.printf("Sorting time: %.2f milliseconds%n", elapsedTime);
 
         } catch (IOException e) {
             e.printStackTrace();

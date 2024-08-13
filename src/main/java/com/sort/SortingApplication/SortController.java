@@ -49,7 +49,9 @@ public class SortController {
     @PostMapping("/api/sortNumbers")
     public ResponseEntity<?> sortNumbers(@RequestParam("order") String order) {
         try {
-            String sortOrder = "1".equals(order) ? "ascending" : "2".equals(order) ? "descending" : "ascending";
+            // Determine the sort order based on the request parameter
+            String sortOrder = "ascending".equalsIgnoreCase(order) ? "ascending" : "descending";
+
             ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "/Users/purandhar/Work/Projects/SortingApplication/src/main/resources/static/script.sh", sortOrder);
             processBuilder.redirectErrorStream(true);
 
@@ -88,7 +90,14 @@ public class SortController {
             Path sortedFilePath = "ascending".equals(sortOrder) ? JAVA_SORTED_ASSENT_PATH : JAVA_SORTED_DESCENT_PATH;
             String sortedFileName = sortedFilePath.getFileName().toString();
 
+            // Extract Java and C sorting times from the output
+            String outputString = output.toString();
+            long javaSortingTime = extractSortingTime("Java sorting time:", outputString);
+            long cSortingTime = extractSortingTime("C sorting time:", outputString);
+
             return ResponseEntity.ok().body(Map.of(
+                    "javaSortingTime", javaSortingTime,
+                    "cSortingTime", cSortingTime,
                     "timeTaken", timeTaken,
                     "randomNumbersUrl", "/downloads/randomNumbers.csv",
                     "sortedNumbersUrl", "/downloads/" + sortedFileName
@@ -97,6 +106,26 @@ public class SortController {
             System.err.println("Error sorting numbers: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sorting numbers: " + e.getMessage());
         }
+    }
+
+    private long extractSortingTime(String label, String output) {
+        System.out.println("Output for debugging: " + output); // Debugging line
+
+        String[] lines = output.split("\n");
+        for (String line : lines) {
+            if (line.contains(label)) {
+                String[] parts = line.split(":");
+                if (parts.length > 1) {
+                    try {
+                        return Long.parseLong(parts[1].trim().replace("milliseconds", "").replace("ms", ""));
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace(); // Print stack trace for debugging
+                        return -1;
+                    }
+                }
+            }
+        }
+        return -1; // Return -1 if time not found
     }
 
     @GetMapping("/downloads/randomNumbers.csv")
